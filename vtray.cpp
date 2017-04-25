@@ -7,7 +7,6 @@
 
 #include "geometry.hpp"
 #include "json.hpp"
-#include "png.hpp"
 
 int main(int argc, char *argv[]){
 	std::string jsonFile, pngFile;

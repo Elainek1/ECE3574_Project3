@@ -15,7 +15,6 @@ find_package(Qt5 COMPONENTS Gui REQUIRED)
 set(src
   geometry.hpp geometry.cpp
   json.hpp json.cpp
-  png.hpp png.cpp
   )
 
 # EDIT: add any additional test source files to this list
