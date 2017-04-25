@@ -24,6 +24,7 @@ int main(int argc, char *argv[]){
 		json.setThreadNum(1);
 		bool ok = json.readJson(QString::fromStdString(jsonFile));
 		if (!ok){
+			std::cout << "Error: Unable to parse json";
 			return EXIT_FAILURE;
 		}
 		json.renderImage();
@@ -40,6 +41,7 @@ int main(int argc, char *argv[]){
 				json.setThreadNum(1);
 				bool ok = json.readJson(QString::fromStdString(jsonFile));
 				if (!ok) {
+					std::cout << "Error: Unable to parse json";
 					return EXIT_FAILURE;
 				}
 				json.renderImage();

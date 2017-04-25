@@ -22,6 +22,8 @@ public:
 	void renderImage();
 	void setPngFilename(std::string file);
 	void setThreadNum(int num);
+	file();
+	~file();
 private:
 	std::string pngFilename;
 	camera cameraVal;

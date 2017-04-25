@@ -13,6 +13,17 @@
 
 #include "geometry.hpp"
 
+file::file() {
+	image = nullptr;
+}
+
+file::~file() {
+	if (image != nullptr) {
+		delete image;
+		image = nullptr;
+	}
+}
+
 bool file::readJson(QString filename)
 {
 	bool ok;
@@ -68,7 +79,9 @@ bool file::parseObjects(QJsonArray objectsInput) {
 		
 		QJsonObject colorVal = shapeVal.value(QString("color")).toObject();
 		shapeIn.color = colorClass(colorVal.value(QString("r")).toInt(), colorVal.value(QString("g")).toInt(), colorVal.value(QString("b")).toInt());
-		
+		if ((shapeIn.color.r > 255) || (shapeIn.color.g > 255) || (shapeIn.color.b > 255)){
+			return false;
+		}
 		QJsonObject normalVal = shapeVal.value(QString("normal")).toObject();
 		shapeIn.normal = point(normalVal.value(QString("x")).toDouble(), normalVal.value(QString("y")).toDouble(), normalVal.value(QString("z")).toDouble());
 
@@ -187,10 +200,6 @@ void file::renderImage()
 	for (int i = 0; i < cameraVal.sizeX; i++){
 		double xVal = cameraVal.resolutionX * (i - cameraVal.sizeX / 2) - cameraVal.center.x;
 		for (int j = 0; j < cameraVal.sizeY; j++){
-			if ((i == 511) && (j == 511))
-			{
-				std::cout << "Hi";
-			}
 			double yVal = cameraVal.resolutionY * (j - cameraVal.sizeY / 2) - cameraVal.center.y;
 			int pixColor = intersects(focalPt, point(xVal, yVal, cameraVal.center.z));
 			image->setPixel(i, j, pixColor);
