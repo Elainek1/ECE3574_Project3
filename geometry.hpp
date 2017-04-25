@@ -7,15 +7,15 @@
 
 
 
-class color
+class colorClass
 {
 public:
 	int b;
 	int g;
 	int r;
-	color();
-	~color();
-	color(int rIn, int gIn, int bIn);
+	colorClass();
+	~colorClass();
+	colorClass(int rIn, int gIn, int bIn);
 private:
 };
 
@@ -47,7 +47,7 @@ class shape
 public:
 	std::string type;
 	point center;
-	color color;
+	colorClass color;
 	float lambert;
 	float radius;
 	point normal;

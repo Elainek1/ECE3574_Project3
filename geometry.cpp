@@ -2,15 +2,15 @@
 
 #include <math.h>
 
-color::color()
+colorClass::colorClass()
 {
 }
 
-color::~color()
+colorClass::~colorClass()
 {
 }
 
-color::color(int rIn, int gIn, int bIn)
+colorClass::colorClass(int rIn, int gIn, int bIn)
 {
 	r = rIn;
 	g = gIn;
