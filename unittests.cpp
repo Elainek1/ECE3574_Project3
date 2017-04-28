@@ -10,6 +10,8 @@
 #include "json.hpp"
 
 #include <fstream>
+#include <math.h>
+#include <cmath>
 
 TEST_CASE("Test Basic Geometry: point ", "[geometry]") {
 
@@ -28,9 +30,14 @@ TEST_CASE("Test Basic Geometry: point ", "[geometry]") {
 	REQUIRE(adotb == Approx(0));
 
 	point anorm = normal(a, b);
-	REQUIRE(anorm.x == Approx(-2));
-	REQUIRE(anorm.y == Approx(4));
+	REQUIRE(anorm.x == Approx(-2/sqrt(20)));
+	REQUIRE(anorm.y == Approx(4/sqrt(20)));
 	REQUIRE(anorm.z == Approx(0));
+
+	point aUnit = normalize(a);
+	REQUIRE(aUnit.x == Approx(1));
+	REQUIRE(aUnit.y == Approx(0));
+	REQUIRE(aUnit.z == Approx(0));
 
 	double magA = mag(a);
 	REQUIRE(magA == Approx(2));	
