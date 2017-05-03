@@ -70,7 +70,7 @@ bool file::readJson(QString filename)
 	else {
 		return false;
 	}
-	
+	pixColorArray.resize(cameraVal.sizeX*cameraVal.sizeY);
 	return ok;
 }
 
@@ -253,14 +253,13 @@ point file::intersects(const point & fromPt, const point & toPt){
 	//return (0xFF000000) | rgbVal;
 }
 
-void file::renderImage()
+void file::renderImage(int threadNum)
 {
-	image = new QImage(cameraVal.sizeX, cameraVal.sizeY, QImage::Format_RGB32);
 	point focalPt = point(cameraVal.center.x - cameraVal.normal.x*cameraVal.focus, cameraVal.center.y - cameraVal.normal.y*cameraVal.focus, cameraVal.center.z - cameraVal.normal.z*cameraVal.focus);
 	double yVal;
-	int pixIt, pixVal;
+	int pixIt;
 	point pixPlace;
-	for (int i = 0; i < cameraVal.sizeX; i++){
+	for (int i = (cameraVal.sizeX*threadNum/totThreadNum); i < (cameraVal.sizeX*(threadNum+1)/totThreadNum); i++){
 		double xVal = cameraVal.resolutionX * (i - cameraVal.sizeX / 2) - cameraVal.center.x;
 		for (int j = 0; j < cameraVal.sizeY; j++){
 			//image.fill(Qt::GlobalColor::black);
@@ -268,7 +267,7 @@ void file::renderImage()
 			//int pixColor = intersects(focalPt, point(xVal, yVal, cameraVal.center.z));
 			pixIt = (i*cameraVal.sizeY) + (j);
 			pixPlace = point(xVal, yVal, cameraVal.center.z);
-			pixColorArray.push_back(findPixelVal(focalPt, pixPlace));
+			pixColorArray[pixIt] = findPixelVal(focalPt, pixPlace);
 			if (rgbMax < pixColorArray[pixIt].r) {
 				rgbMax = pixColorArray[pixIt].r;
 			}
@@ -288,6 +287,13 @@ void file::renderImage()
 			pixColorArray[i].scaleBy((255.0) / ((double)rgbMax));
 		}
 	}
+
+	return;
+}
+
+bool file::savePic(){
+	image = new QImage(cameraVal.sizeX, cameraVal.sizeY, QImage::Format_RGB32);
+	int pixVal;
 	for (int i = 0; i < cameraVal.sizeX; i++) {
 		for (int j = 0; j < cameraVal.sizeY; j++) {
 			pixVal = (0xFF000000) | (pixColorArray[(i*cameraVal.sizeY) + (j)].r << 16) | (pixColorArray[(i*cameraVal.sizeY) + (j)].g << 8) | (pixColorArray[(i*cameraVal.sizeY) + (j)].b);
@@ -295,10 +301,12 @@ void file::renderImage()
 			image->setPixel(i, j, pixVal);
 		}
 	}
-	
+
 	bool ok = image->save(QString::fromStdString(pngFilename), "png");
 	delete image;
 	image = nullptr;
+
+	return ok;
 }
 
 void file::setPngFilename(std::string file){
@@ -306,7 +314,7 @@ void file::setPngFilename(std::string file){
 }
 
 void file::setTotalThreadNum(int num) {
-	threadNum = num;
+	totThreadNum = num;
 }
 
 void file::setCurThreadNum(int num) {

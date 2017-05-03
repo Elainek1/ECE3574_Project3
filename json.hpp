@@ -17,15 +17,17 @@ class file
 {
 	//Q_OBJECT
 public:
+	file();
+	~file();
 	bool readJson(QString filename);
 	colorClass findPixelVal(const point & fromPt, const point & toPt);
 	point intersects(const point & fromPt, const point & toPt);
-	void renderImage();
+	void renderImage(int threadNum);
+	bool savePic();
 	void setPngFilename(std::string file);
 	void setTotalThreadNum(int num);
 	void setCurThreadNum(int num);
-	file();
-	~file();
+	
 private:
 	int rgbMax;
 	std::string pngFilename;
@@ -38,7 +40,7 @@ private:
 	bool parseObjects(QJsonArray objectsInput);
 	QImage * image;
 	double planeIntersect(const point & l0, const point & l, const point & p0, const point & n);
-	int threadNum;
+	int totThreadNum;
 	int curThreadNum;
 
 };

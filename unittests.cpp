@@ -62,7 +62,8 @@ TEST_CASE("Test read valid json ", "[json]") {
 	}
 	bool ok = json.readJson(QString::fromStdString("./testMe.json"));
 	REQUIRE(ok);
-	json.renderImage();
+	json.renderImage(0);
+	json.savePic();
 	std::ifstream inputPNG("testMe.png");
 	REQUIRE(!inputPNG.fail());
 }
