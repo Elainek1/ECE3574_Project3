@@ -22,7 +22,8 @@ public:
 	point intersects(const point & fromPt, const point & toPt);
 	void renderImage();
 	void setPngFilename(std::string file);
-	void setThreadNum(int num);
+	void setTotalThreadNum(int num);
+	void setCurThreadNum(int num);
 	file();
 	~file();
 private:
@@ -38,6 +39,7 @@ private:
 	QImage * image;
 	double planeIntersect(const point & l0, const point & l, const point & p0, const point & n);
 	int threadNum;
+	int curThreadNum;
 
 };
 

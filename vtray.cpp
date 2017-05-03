@@ -4,9 +4,12 @@
 #include <iostream>
 #include <qstring.h>
 #include <qimage.h>
+//#include <pthread.h>
+#include <thread>
 
 #include "geometry.hpp"
 #include "json.hpp"
+
 
 int main(int argc, char *argv[]){
 	std::string jsonFile, pngFile;
@@ -20,7 +23,7 @@ int main(int argc, char *argv[]){
 		pngFile = arguments[2];
 		file json;
 		json.setPngFilename(pngFile);
-		json.setThreadNum(1);
+		json.setTotalThreadNum(1);
 		bool ok = json.readJson(QString::fromStdString(jsonFile));
 		if (!ok){
 			std::cout << "Error: Unable to parse json";
@@ -37,13 +40,24 @@ int main(int argc, char *argv[]){
 				pngFile = arguments[2];
 				file json;
 				json.setPngFilename(pngFile);
-				json.setThreadNum(1);
-				bool ok = json.readJson(QString::fromStdString(jsonFile));
-				if (!ok) {
-					std::cout << "Error: Unable to parse json";
-					return EXIT_FAILURE;
+				json.setTotalThreadNum(1);
+				for (int i = 1; i <= threadNum; i++) {
+					json.setCurThreadNum(1);
+					bool ok = json.readJson(QString::fromStdString(jsonFile));
+					if (!ok) {
+						std::cout << "Error: Unable to parse json";
+						return EXIT_FAILURE;
+					}
+					//json.renderImage();
+					//thread th1();
+					//thread th2(&json.renderImage());
+					std::vector<std::thread> threads;
+
+					//th1.join();
+					//th2.join();
 				}
-				json.renderImage();
+				
+				
 			}
 			catch(const std::invalid_argument&){
 				std::cout << "Error: incorrect value for thread number\n";

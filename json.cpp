@@ -75,7 +75,7 @@ bool file::readJson(QString filename)
 }
 
 bool file::parseObjects(QJsonArray objectsInput) {
-	for (int i = 0; i < objectsInput.size(); i++)
+	for (unsigned int i = 0; i < objectsInput.size(); i++)
 	{
 		shape shapeIn;
 		QJsonObject shapeVal = objectsInput[i].toObject();
@@ -100,7 +100,7 @@ bool file::parseObjects(QJsonArray objectsInput) {
 }
 
 bool file::parseLights(QJsonArray lightsInput){
-	for (int i = 0; i < lightsInput.size(); i++)
+	for (unsigned int i = 0; i < lightsInput.size(); i++)
 	{
 		light lightIn;
 		QJsonObject lightVal = lightsInput[i].toObject();
@@ -145,43 +145,58 @@ colorClass file::findPixelVal(const point & fromPt, const point & toPt) {
 	unsigned int R = 0;
 	unsigned int G = 0;
 	unsigned int B = 0;
+	double scale = 0;
 	point closestPt = intersects(fromPt, toPt);
+	point lightHits, shadowRayUnit;
 	if (closestPt.objectIt >= 0) {
 		closestPt.x += fromPt.x;
 		closestPt.y += fromPt.y;
 		closestPt.z += fromPt.z;
-		for (int i = 0; i < lightsArray.size(); i++) {
-			point lightHits = intersects(lightsArray[i].location, closestPt);
+		for (unsigned int i = 0; i < lightsArray.size(); i++) {
+			lightHits = intersects(closestPt, lightsArray[i].location);
+			lightHits.x += closestPt.x;
+			lightHits.y += closestPt.y;
+			lightHits.z += closestPt.z;
+			if((lightHits.z < cameraVal.center.z) || (lightHits.objectIt == -1)){
+			/*point lightHits = intersects(lightsArray[i].location, closestPt);
 			lightHits.x += lightsArray[i].location.x;
 			lightHits.y += lightsArray[i].location.y;
 			lightHits.z += lightsArray[i].location.z;
-			if ((std::fabs(lightHits.x - closestPt.x) + std::fabs(lightHits.y - closestPt.y) + std::fabs(lightHits.z - closestPt.z) + std::fabs(lightHits.objectIt - closestPt.objectIt)) < 1e-6) {
-				double scale = 0;
+			if (lightHits.z < cameraVal.center.z) {
+				point lightHits2 = intersects(lightHits, closestPt);
+				lightHits.x += lightHits2.x;
+				lightHits.y += lightHits2.y;
+				lightHits.z += lightHits2.z;
+			}
+			if (((std::fabs(lightHits.x - closestPt.x) + std::fabs(lightHits.y - closestPt.y) + std::fabs(lightHits.z - closestPt.z) + std::fabs(lightHits.objectIt - closestPt.objectIt)) < 1e-6)) {
+			*/
+				//double scale = 0;
 				if (objectsArray[closestPt.objectIt].type == "sphere"){
-					point shadowRayUnit = normal(closestPt, lightsArray[i].location);
+					shadowRayUnit = normal(closestPt, lightsArray[i].location);
 					scale = dot(normal(objectsArray[closestPt.objectIt].center, closestPt), shadowRayUnit)*objectsArray[closestPt.objectIt].lambert;
 				}
 				else if (objectsArray[closestPt.objectIt].type == "plane") {
-					point shadowRayUnit = normal(closestPt, lightsArray[i].location);
+					shadowRayUnit = normal(closestPt, lightsArray[i].location);
 					scale = dot(normalize(objectsArray[closestPt.objectIt].normal), shadowRayUnit)*objectsArray[closestPt.objectIt].lambert;
 				}
-				R += scale*lightsArray[i].intensity*objectsArray[closestPt.objectIt].color.r;
-				G += scale*lightsArray[i].intensity*objectsArray[closestPt.objectIt].color.g;
-				B += scale*lightsArray[i].intensity*objectsArray[closestPt.objectIt].color.b;
-				
+				if (scale >= 0) {
+					R += scale*lightsArray[i].intensity*objectsArray[closestPt.objectIt].color.r;
+					G += scale*lightsArray[i].intensity*objectsArray[closestPt.objectIt].color.g;
+					B += scale*lightsArray[i].intensity*objectsArray[closestPt.objectIt].color.b;
+				}
 			}
 		}
 	}
-	return colorClass(R, G, B);
+	return colorClass((int) R, (int) G, (int) B);
 	//rgbVal = (R << 16) | (G << 8) | (B);
 	// return (0xFF000000) | rgbVal;
 }
 
 point file::intersects(const point & fromPt, const point & toPt){
-	point closestPt;
+	point closestPt = point(0,0,0);
 	//int closestNum = -1;
 	unsigned int rgbVal = 0;
-	for (int i = 0; i < objectsArray.size(); i++){
+	for (unsigned int i = 0; i < objectsArray.size(); i++){
 		if (objectsArray[i].type == "plane") {
 			point rayDirection = point(toPt.x - fromPt.x, toPt.y - fromPt.y, toPt.z - fromPt.z);
 			double magRay = mag(rayDirection);
@@ -189,7 +204,7 @@ point file::intersects(const point & fromPt, const point & toPt){
 			double magNorm = mag(objectsArray[i].normal);
 			point normUnit = point(objectsArray[i].normal.x / magNorm, objectsArray[i].normal.y / magNorm, objectsArray[i].normal.z / magNorm);
 			double t = planeIntersect(fromPt, rayUnit, objectsArray[i].center, normUnit);
-			if (t >= 0) {
+			if (t > 0) {
 				if (closestPt.objectIt == -1){
 					closestPt = point (t*rayUnit.x,t*rayUnit.y, t*rayUnit.z);
 					closestPt.objectIt = i;
@@ -213,17 +228,20 @@ point file::intersects(const point & fromPt, const point & toPt){
 			double discrim = b*b - 4 * a*c;
 			if (discrim >= 0){
 				double t = (-1 * b - sqrt(discrim)) / (2 * a);
-				if (closestPt.objectIt == -1){
-					closestPt = point(t*dx, t*dy, t*dz);
-					closestPt.objectIt = i;
-				}
-				else {
-					point newPt = point(t*dx, t*dy, t*dz);
-					if (mag(closestPt) > mag(newPt)) {
-						closestPt = newPt;
+				if (t > 0) {
+					if (closestPt.objectIt == -1) {
+						closestPt = point(t*dx, t*dy, t*dz);
 						closestPt.objectIt = i;
 					}
+					else {
+						point newPt = point(t*dx, t*dy, t*dz);
+						if (mag(closestPt) > mag(newPt)) {
+							closestPt = newPt;
+							closestPt.objectIt = i;
+						}
+					}
 				}
+				
 			}
 		}
 	}
@@ -239,13 +257,18 @@ void file::renderImage()
 {
 	image = new QImage(cameraVal.sizeX, cameraVal.sizeY, QImage::Format_RGB32);
 	point focalPt = point(cameraVal.center.x - cameraVal.normal.x*cameraVal.focus, cameraVal.center.y - cameraVal.normal.y*cameraVal.focus, cameraVal.center.z - cameraVal.normal.z*cameraVal.focus);
+	double yVal;
+	int pixIt, pixVal;
+	point pixPlace;
 	for (int i = 0; i < cameraVal.sizeX; i++){
 		double xVal = cameraVal.resolutionX * (i - cameraVal.sizeX / 2) - cameraVal.center.x;
 		for (int j = 0; j < cameraVal.sizeY; j++){
-			double yVal = cameraVal.resolutionY * (j - cameraVal.sizeY / 2) - cameraVal.center.y;
+			//image.fill(Qt::GlobalColor::black);
+			yVal = cameraVal.resolutionY * (j - cameraVal.sizeY / 2) - cameraVal.center.y;
 			//int pixColor = intersects(focalPt, point(xVal, yVal, cameraVal.center.z));
-			int pixIt = (i*cameraVal.sizeY) + (j);
-			pixColorArray.push_back(findPixelVal(focalPt, point(xVal, yVal, cameraVal.center.z)));
+			pixIt = (i*cameraVal.sizeY) + (j);
+			pixPlace = point(xVal, yVal, cameraVal.center.z);
+			pixColorArray.push_back(findPixelVal(focalPt, pixPlace));
 			if (rgbMax < pixColorArray[pixIt].r) {
 				rgbMax = pixColorArray[pixIt].r;
 			}
@@ -261,13 +284,14 @@ void file::renderImage()
 
 	if (rgbMax > 255)
 	{
-		for (int i = 0; i < pixColorArray.size(); i++) {
+		for (unsigned int i = 0; i < pixColorArray.size(); i++) {
 			pixColorArray[i].scaleBy((255.0) / ((double)rgbMax));
 		}
 	}
 	for (int i = 0; i < cameraVal.sizeX; i++) {
 		for (int j = 0; j < cameraVal.sizeY; j++) {
-			int pixVal = (0xFF000000) | (pixColorArray[(i*cameraVal.sizeY) + (j)].r << 16) | (pixColorArray[(i*cameraVal.sizeY) + (j)].g << 8) | (pixColorArray[(i*cameraVal.sizeY) + (j)].b);
+			pixVal = (0xFF000000) | (pixColorArray[(i*cameraVal.sizeY) + (j)].r << 16) | (pixColorArray[(i*cameraVal.sizeY) + (j)].g << 8) | (pixColorArray[(i*cameraVal.sizeY) + (j)].b);
+			//QRgb pixVal = qRgb(pixColorArray[(i*cameraVal.sizeY) + (j)].r, pixColorArray[(i*cameraVal.sizeY) + (j)].g, pixColorArray[(i*cameraVal.sizeY) + (j)].b);
 			image->setPixel(i, j, pixVal);
 		}
 	}
@@ -281,8 +305,12 @@ void file::setPngFilename(std::string file){
 	pngFilename = "./" + file;
 }
 
-void file::setThreadNum(int num) {
+void file::setTotalThreadNum(int num) {
 	threadNum = num;
+}
+
+void file::setCurThreadNum(int num) {
+	curThreadNum = num;
 }
 
 double file::planeIntersect(const point & l0, const point & l, const point & p0, const point & n) {

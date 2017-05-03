@@ -47,7 +47,8 @@ TEST_CASE("Test read valid json ", "[json]") {
 
 	file json;
 	json.setPngFilename("testMe.png");
-	json.setThreadNum(1);
+	json.setTotalThreadNum(1);
+	json.setCurThreadNum(1);
 	std::ofstream myfile("testMe.json");
 	if (myfile.is_open())
 	{
@@ -89,7 +90,7 @@ TEST_CASE("Test read missing lights json ", "[json]") {
 
 	file json;
 	json.setPngFilename("testMe.png");
-	std::ofstream myfile("testMe2.json");
+	std::ofstream myfile("testMe3.json");
 	if (myfile.is_open())
 	{
 		myfile << "{\"camera\": {\"center\": {\"x\": 0,\"y\": 0,\"z\": 0},\"focus\": 10,\"normal\": {\"x\": 0,\"y\": 0,\"z\": 1},\"resolution\": [0.01,0.01],\"size\": [1024,1024]},"
@@ -99,7 +100,7 @@ TEST_CASE("Test read missing lights json ", "[json]") {
 			<< "{\"center\": {\"x\": 0,\"y\": -10,\"z\": 0},\"color\": {\"b\": 200,\"g\": 0,\"r\": 0},\"lambert\": 1,\"normal\": {\"x\": 0,\"y\": 1,\"z\": 0},\"type\": \"plane\"}]}";
 		myfile.close();
 	}
-	bool ok = json.readJson(QString::fromStdString("./testMe2.json"));
+	bool ok = json.readJson(QString::fromStdString("./testMe3.json"));
 	REQUIRE(!ok);
 }
 
@@ -107,7 +108,7 @@ TEST_CASE("Test read missing objects json ", "[json]") {
 
 	file json;
 	json.setPngFilename("testMe.png");
-	std::ofstream myfile("testMe2.json");
+	std::ofstream myfile("testMe4.json");
 	if (myfile.is_open())
 	{
 		myfile << "{\"camera\": {\"center\": {\"x\": 0,\"y\": 0,\"z\": 0},\"focus\": 10,\"normal\": {\"x\": 0,\"y\": 0,\"z\": 1},\"resolution\": [0.01,0.01],\"size\": [1024,1024]},\"lights\": [{\"intensity\": 0.6,\"location\": {\"x\": 0,\"y\": 0,\"z\": -10}},"
@@ -115,7 +116,7 @@ TEST_CASE("Test read missing objects json ", "[json]") {
 			<< "}";
 		myfile.close();
 	}
-	bool ok = json.readJson(QString::fromStdString("./testMe2.json"));
+	bool ok = json.readJson(QString::fromStdString("./testMe4.json"));
 	REQUIRE(!ok);
 }
 /*
